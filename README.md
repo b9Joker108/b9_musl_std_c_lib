@@ -1,5 +1,4 @@
-
-#    b9_musl_std_c_lib
+#    b9_musl_std_c_lib Playground
 
 This is a practical, working and functional reposository, but it is principally developed and framed as a learning and development repository, inestimably useful in an unrooted Termux GNU/Linux userland environment.
 

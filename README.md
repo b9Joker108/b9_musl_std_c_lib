@@ -196,3 +196,153 @@ To gain further assurance, one could:
 
 Ultimately, the level of certainty regarding the success of the entire process depends on the availability of comprehensive logs from all stages and the execution of appropriate validation procedures. 
 
+
+### Develop and Run Simple C programs in an unrooted Termux, using musl from this project and clang
+
+Sure, let's recap the steps we took to successfully compile the `hello` C program with musl in detail:
+
+### Objective
+Our goal was to compile and run a simple C program (`hello.c`) using the musl C standard library, ensuring that Clang does not utilize the system's default C libraries.
+
+### Steps Taken
+
+1. **Write the C Program**:
+   - We created a file named `hello.c` with the following content:
+     ```c
+     #include <stdio.h>
+     int main() {
+         printf("hello, world!\n");
+         return 0;
+     }
+     ```
+
+2. **Set Up the Environment**:
+   - We ensured musl was installed with its libraries and headers located in:
+     - Libraries: `/data/data/com.termux/files/home/.local/musl/lib`
+     - Headers: `/data/data/com.termux/files/home/.local/musl/include`
+
+3. **Compile Using Clang**:
+   - We used Clang to compile and link the program, specifically pointing to musl's headers, libraries, and startup files while avoiding system libraries. The final compilation command was:
+     ```sh
+     /data/data/com.termux/files/usr/bin/clang hello.c -o hello \
+       -nostdlib \
+       -nostdinc \
+       -ffreestanding \
+       -I/data/data/com.termux/files/home/.local/musl/include \
+       -L/data/data/com.termux/files/home/.local/musl/lib \
+       /data/data/com.termux/files/home/.local/musl/lib/crt1.o \
+       /data/data/com.termux/files/home/.local/musl/lib/crti.o \
+       /data/data/com.termux/files/home/.local/musl/lib/crtn.o \
+       /data/data/com.termux/files/home/.local/musl/lib/libc.a \
+       -Wl,-dynamic-linker=/data/data/com.termux/files/home/.local/musl/lib/ld-musl-aarch64.so.1 \
+       -Wl,-rpath=/data/data/com.termux/files/home/.local/musl/lib \
+       -lc -lm -lpthread -lgcc
+     ```
+
+### Key Details and Flags Used
+
+1. **`-nostdlib`**: This flag tells Clang not to link with the default system libraries, ensuring no system libraries are included.
+2. **`-nostdinc`**: This flag tells Clang not to search for header files in the standard system directories, ensuring no system headers are included.
+3. **`-ffreestanding`**: This flag indicates that the code is being compiled for a freestanding environment, avoiding implicit dependencies on system libraries.
+4. **`-I`** and **`-L`**: These flags specify the include and library paths for musl, ensuring that Clang uses musl's headers and libraries.
+5. **Startup Files** (`crt1.o`, `crti.o`, `crtn.o`): These files are necessary for proper initialization of the program.
+6. **Link Libraries** (`-lc -lm -lpthread -lgcc`):
+   - `-lc`: Links against musl's C standard library.
+   - `-lm`: Links against the math library.
+   - `-lpthread`: Links against the pthread library.
+   - `-lgcc`: Links against the GCC runtime library to provide necessary floating-point operation symbols.
+7. **Dynamic Linker and Runtime Library Path**:
+   - `-Wl,-dynamic-linker=/data/data/com.termux/files/home/.local/musl/lib/ld-musl-aarch64.so.1`: Specifies the musl dynamic linker.
+   - `-Wl,-rpath=/data/data/com.termux/files/home/.local/musl/lib`: Sets the runtime library search path to musl's library directory.
+
+### Verification and Execution
+
+1. **Compilation**:
+   - We ran the above command and observed no output, indicating a successful compilation without errors.
+   
+2. **Running the Program**:
+   - We executed the compiled program using:
+     ```sh
+     ./hello
+     ```
+   - However, we encountered errors related to `libtermux-exec.so` due to missing symbols. To resolve environment issues, you sourced `.zshrc` to reset the environment, but the issue persisted.
+
+```zsh
+❯ file ./hello
+./hello: ELF 64-bit LSB pie executable, ARM aarch64, version 1 (SYSV), dynamically linked, interpreter /data/data/com.termux/files/home/.local/musl/lib/ld-musl-aarch64.so.1, with debug_info, not stripped
+```
+
+#### Introduction
+
+Hello! I'd be happy to help you execute your compiled C code in an unrooted Termux environment. Running compiled C programs can sometimes present challenges, especially when using alternative C libraries like musl. Let's walk through the steps to ensure your `hello` program runs smoothly in Termux.
+
+#### Steps to Execute Compiled C Code in Unrooted Termux
+
+1. **Ensure Proper Compilation with Static Linking**
+
+   To avoid issues related to dynamic linking, such as the `libtermux-exec.so` errors you encountered, it's advisable to compile your C program with **static linking**. This embeds all necessary library code into the executable, eliminating dependencies on external shared libraries.
+
+   **Modify Your Compilation Command:**
+   ```sh
+   /data/data/com.termux/files/usr/bin/clang hello.c -o hello \
+     -static \
+     -I/data/data/com.termux/files/home/.local/musl/include \
+     -L/data/data/com.termux/files/home/.local/musl/lib \
+     /data/data/com.termux/files/home/.local/musl/lib/crt1.o \
+     /data/data/com.termux/files/home/.local/musl/lib/crti.o \
+     /data/data/com.termux/files/home/.local/musl/lib/crtn.o \
+     /data/data/com.termux/files/home/.local/musl/lib/libc.a \
+     -Wl,-static \
+     -Wl,-rpath=/data/data/com.termux/files/home/.local/musl/lib \
+     -lc -lm -lpthread -lgcc
+   ```
+
+   **Key Changes:**
+   - **`-static`**: Instructs Clang to perform static linking.
+   - **`-Wl,-static`**: Passes the `-static` flag to the linker explicitly.
+
+   *Static linking ensures that all required libraries are included within the executable, reducing runtime dependencies.*
+
+2. **Verify the Executable**
+
+   After recompiling with static linking, check the executable to confirm it's statically linked.
+
+   ```sh
+   file ./hello
+   ```
+
+   **Expected Output:**
+   ```
+   hello: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV), statically linked, not stripped
+   ```
+
+   *The presence of "statically linked" confirms that dynamic dependencies have been removed.*
+
+3. **Execute the Program**
+
+   With the statically linked executable, you can now run your `hello` program without encountering dynamic linking issues.
+
+   ```sh
+   ./hello
+   ```
+
+   **Expected Output:**
+   ```
+   hello, world!
+   ```
+
+4. **Troubleshooting Common Issues**
+
+   - **Permission Denied Error:**
+     If you encounter a permission error, ensure the executable has the necessary permissions.
+
+     ```sh
+     chmod +x hello
+     ./hello
+     ```
+
+   - **Missing Libraries Despite Static Linking:**
+     If static linking doesn't resolve all dependencies, double-check that all libraries are correctly specified and that their paths are accurate.
+
+Executing compiled C programs in Termux without rooting is entirely feasible with the right setup. By opting for static linking, you can mitigate many common issues related to dynamic libraries. If challenges persist, leveraging Termux's default libraries or consulting community resources can further assist in resolving any hurdles.
+

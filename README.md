@@ -708,3 +708,20 @@ Let's review and expand upon the steps you've outlined to ensure a smooth setup:
 #### Conclusion
 
 Setting up a musl-based chroot environment using `proot` in Termux is a robust solution for isolating your program's execution environment. By following the steps outlined above, you can ensure that your `hello` program runs using musl's libraries without interfering with Termux's system libraries. If you encounter further issues, consider consulting the [Proot Documentation](https://github.com/proot-me/proot) or seeking assistance from the Termux community.
+
+# Debian proot-distro proot chroot unprivileged user
+
+By, luck, I found out that my unrooted Debian chroot has the availability of an assortment of packaged `musl` libraries and tools. I installed them. I made a copy of the musl C library dynamically-linked compiled binary named `hello` and re-named it: `hello_compiled_musl_c_programme`. Then in Debian, I did the following:
+
+(/home/hummingbird108/python_home) > lld hello_compiled_musl_c_programme            ~@localhost
+lld is a generic driver.
+Invoke ld.lld (Unix), ld64.lld (macOS), lld-link (Windows), wasm-ld (WebAssembly) instead
+(/home/hummingbird108/python_home) > ld.lld hello_compiled_musl_c_programme         ~@localhost
+ld.lld: warning: cannot find entry symbol _start; not setting start address
+(/home/hummingbird108/python_home) > ldd hello_compiled_musl_c_programme            ~@localhost         libc.so => /data/data/com.termux/files/home/.local/musl/lib/libc.so (0x0000007510ca0000)
+(/home/hummingbird108/python_home) > ./hello_compiled_musl_c_programme              ~@localhost zsh: permission denied: ./hello_compiled_musl_c_programme
+(/home/hummingbird108/python_home) > chmod +x hello_compiled_musl_c_programme       ~@localhost
+(/home/hummingbird108/python_home) > ./hello_compiled_musl_c_programme              ~@localhost
+hello, world!
+
+So, I compiled the dynamic musl c binary `hello` in my unrooted Termux host environment successfully. But, could not execute in that environmemt. Transferring a copy of the dynamic binary named  `hello_compiled_musl_c_programme` to my unrooted Termux Debian peoot chroot, I installed `musl` libraries and tools wirh `apt`, interrogated the binary and its dynamically linked relationship in the different environment and it executed successfully!

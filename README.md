@@ -1,7 +1,7 @@
 
 #    b9_musl_std_c_lib
 
-This is a practical working, functional and development reposository, but it is principally framed as a learning repository, though inestimably useful in an unrooted Termux GNU/Linux userland environment.
+This is a practical, working and functional reposository, but it is principally developed and framed as a learning and development repository, inestimably useful in an unrooted Termux GNU/Linux userland environment.
 
 `b9_musl_std_c_lib` is a development of the `musl` project, pronounced like the word "mussel", is an MIT-licensed
 implementation of the standard C library targetting the Linux syscall

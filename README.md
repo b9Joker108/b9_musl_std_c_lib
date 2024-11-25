@@ -346,3 +346,28 @@ Hello! I'd be happy to help you execute your compiled C code in an unrooted Term
 
 Executing compiled C programs in Termux without rooting is entirely feasible with the right setup. By opting for static linking, you can mitigate many common issues related to dynamic libraries. If challenges persist, leveraging Termux's default libraries or consulting community resources can further assist in resolving any hurdles.
 
+### Executing Dynamically Linked Programs with musl Resources
+
+The sources mainly focus on the compilation process of C programs with musl, detailing the flags, libraries, and paths required. They don't explicitly discuss the execution of dynamically linked programs using musl. 
+
+However, based on the information provided, specifically the use of the  **`-Wl,-dynamic-linker`** flag, it can be inferred that execution is intended to utilise the musl dynamic linker **`/data/data/com.termux/files/home/.local/musl/lib/ld-musl-aarch64.so.1`**.  This suggests that the compiled program will use musl's resources at runtime. 
+
+#### Considerations for Execution
+
+While the sources don't provide a direct answer to your query, some key points from the compilation process hint at how execution might work:
+
+* **Dynamic Linking:** The use of **`-Wl,-dynamic-linker`** indicates the program is dynamically linked, meaning it relies on shared libraries loaded at runtime.
+* **`-Wl,-rpath` Flag:** This flag sets the runtime library search path to musl's library directory. This implies that when the program runs, it will search for necessary libraries within the specified musl directory.
+* **Musl Startup Files:** The inclusion of musl's startup files (`crt1.o`, `crti.o`, `crtn.o`) likely ensures the program's initialisation and execution environment are compatible with musl.
+
+#### Potential Execution Methods
+
+Based on this, there are a few potential ways to execute the program:
+
+1. **Direct Execution:** If the program is compiled as an executable and the dynamic linker and libraries are accessible, running the executable directly should use musl's resources.
+2. **Specifying Interpreter:** You might be able to use the musl dynamic linker explicitly as an interpreter. This would involve invoking the linker and passing the program as an argument. 
+
+It's important to note that these are potential methods inferred from the provided information. The sources don't offer concrete guidance on execution. 
+
+*Please note that the information about potential execution methods is inferred from the sources and my general knowledge about dynamic linking. You may want to independently verify these methods and consult additional resources for more specific instructions on executing dynamically linked programs with musl.*
+
